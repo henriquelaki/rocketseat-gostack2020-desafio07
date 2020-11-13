@@ -1,16 +1,12 @@
+import filesize from 'filesize';
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-
-import filesize from 'filesize';
-
-import Header from '../../components/Header';
-import FileList from '../../components/FileList';
-import Upload from '../../components/Upload';
-
-import { Container, Title, ImportFileContainer, Footer } from './styles';
-
 import alert from '../../assets/alert.svg';
+import FileList from '../../components/FileList';
+import Header from '../../components/Header';
+import Upload from '../../components/Upload';
 import api from '../../services/api';
+import { Container, Footer, ImportFileContainer, Title } from './styles';
 
 interface FileProps {
   file: File;
@@ -23,19 +19,32 @@ const Import: React.FC = () => {
   const history = useHistory();
 
   async function handleUpload(): Promise<void> {
-    // const data = new FormData();
+    uploadedFiles.map(async file => {
+      const data = new FormData();
+      console.log('file', file.file, file.name);
+      data.append('file', file.file, file.name);
+      console.log(data);
+      try {
+        api.post('/transactions/import', data);
+      } catch (err) {
+        console.log(err.response.error);
+      }
+    });
 
-    // TODO
-
-    try {
-      // await api.post('/transactions/import', data);
-    } catch (err) {
-      // console.log(err.response.error);
-    }
+    history.goBack();
   }
 
   function submitFile(files: File[]): void {
-    // TODO
+    const filesProps: FileProps[] = [];
+    files.map(file => {
+      filesProps.push({
+        file,
+        name: file.name,
+        readableSize: filesize(file.size),
+      });
+    });
+
+    setUploadedFiles([...uploadedFiles, ...filesProps]);
   }
 
   return (
@@ -49,6 +58,7 @@ const Import: React.FC = () => {
 
           <Footer>
             <p>
+              uploadedFile
               <img src={alert} alt="Alert" />
               Permitido apenas arquivos CSV
             </p>
